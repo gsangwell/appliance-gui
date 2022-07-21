@@ -8,7 +8,7 @@ class PowerController < ApplicationController
                         flash[:error] = 'Encountered an error whilst trying to shutdown the appliance.'
                 end
 
-                redirect_to home_path
+                redirect_back(fallback_location: root_path)
         end
 
         def restart
@@ -18,6 +18,6 @@ class PowerController < ApplicationController
                         flash[:error] = 'Encountered an error whilst trying to restart the appliance.'
                 end
 
-                redirect_to home_path
+                redirect_back(fallback_location: root_path)
         end
 end

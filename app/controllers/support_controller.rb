@@ -8,7 +8,7 @@ class SupportController < ApplicationController
 			flash[:error] = 'Encountered an error whilst trying to enable Alces Support Mode.'
 		end
 
-		redirect_to home_path
+		redirect_back(fallback_location: root_path)
 	end
 
 	def disable
@@ -18,6 +18,6 @@ class SupportController < ApplicationController
                         flash[:error] = 'Encountered an error whilst trying to disable Alces Support Mode.'
                 end
 
-                redirect_to home_path
+                redirect_back(fallback_location: root_path)
 	end	
 end
