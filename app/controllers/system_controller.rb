@@ -6,6 +6,6 @@ class SystemController < ApplicationController
 	def index
 		@appliance_info = Appliance.getApplianceInfo
 		@network_info = Appliance.getNetworkInfo
-		@support_info = Appliance.getSupportInfo
+		@support_info = Appliance.getSupportInfo(ENV.fetch("SUPPORT_VPN") { "support" })
 	end
 end

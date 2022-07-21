@@ -38,9 +38,9 @@ class Appliance
 		return info		
 	end
 
-	def self.getSupportInfo
+	def self.getSupportInfo(vpnclient)
 
-		status = `systemctl status openvpn-client@keplervpn.service | grep "Active:"`
+		status = `systemctl status openvpn-client@#{vpnclient} | grep "Active:"`
 
 		support = {}
 		support['enabled'] = status.match(/Active: active \(running\)/)
@@ -53,13 +53,13 @@ class Appliance
 		return support
 	end
 
-	def self.enableSupport
-		out, status = Open3.capture2("systemctl start openvpn-client@keplervpn")
+	def self.enableSupport(vpnclient)
+		out, status = Open3.capture2("systemctl start openvpn-client@#{vpnclient}")
 		return status.success?
 	end
 
-	def self.disableSupport
-		out, status = Open3.capture2("systemctl stop openvpn-client@keplervpn")
+	def self.disableSupport(vpnclient)
+		out, status = Open3.capture2("systemctl stop openvpn-client@#{vpnclient}")
                 return status.success?
 	end
 
