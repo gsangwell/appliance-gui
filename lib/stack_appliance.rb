@@ -3,8 +3,9 @@ require 'net/ping'
 require 'resolv'
 require 'time'
 require 'remote_ruby'
+require 'open3'
 
-class Appliance
+class StackAppliance
 	def self.getApplianceInfo
 		info = {}
 
@@ -18,13 +19,15 @@ class Appliance
                 return info
 	end
 
-	def self.getNetworkInfo
+	def self.getNetworkInfo(ping_test, dns_test)
 		info = {}
 
 		remotely(server: 'directory') do
                         require 'resolv'
 
-                        info['dns'] = Resolv::DNS::Config.default_config_hash[:nameserver].join(",")
+                        dns = Resolv::DNS::Config.default_config_hash[:nameserver].join(",")
+
+			info['dns'] = dns.empty? ? "No DNS Server" : dns
                 end
 
 		remotely(server: 'stack-controller') do
@@ -32,17 +35,29 @@ class Appliance
 			require 'net/ping'
 			require 'resolv'
 
-			info['ip'] = `ip -4 addr show eth3 | grep 'inet' | awk '{print $2}' | head -1`
-			info['gateway'] = Net::IP.routes.gateways.find {|gateway| gateway.prefix == "default"}.via
-			#info['dns'] = Resolv::DNS::Config.default_config_hash[:nameserver].join(",")
-			info['ping_test'] = Net::Ping::External.new("8.8.8.8").ping?
-			info['dns_test'] = Resolv::DNS.new().getaddress("alces-software.com")
+			ipv4 = `ip -4 addr show eth3 | grep 'inet' | awk '{print $2}' | head -1`.to_s
+			default_route = Net::IP.routes.gateways.find {|gateway| gateway.prefix == "default"}
+			ping_test = Net::Ping::External.new("#{ping_test}").ping?
+
+			begin
+				resolv = Resolv::DNS.new()
+				resolv.timeouts = 2
+				dns_test = resolv.getaddress("#{dns_test}")
+			rescue => e
+				puts e
+				dns_test = false
+			end
+
+			info['ip'] = ipv4.empty? ? "No IP Address." : ipv4
+			info['gateway'] = default_route.nil? ? "No default route." : default_route.via
+			info['ping_test'] = ping_test
+			info['dns_test'] = dns_test
 		end
 
 		return info		
 	end
 
-	def self.getSupportInfo(vpnclient)
+	def self.getSupportInfo(vpnclient, support_test)
 
 		status = `systemctl status openvpn-client@#{vpnclient} | grep "Active:"`
 
@@ -51,7 +66,7 @@ class Appliance
 
 		if support['enabled']
 			support['enabled_since'] = status.match(/Active: .*;(.*)/)[1]
-			support['ping_hub'] = true
+			support['ping_hub'] = Net::Ping::External.new("#{support_test}").ping?
 		end
 
 		return support
@@ -79,15 +94,29 @@ class Appliance
 
 	def self.reconfigure(settings)
 
-		settings['network'].each do |key, value|
-			`echo "#{key} => #{value}" >> /tmp/settings.txt`
-		end
-
-		return true
+		# Reconfigure network settings
+		reconfigureNetwork(settings['network'])
 
 	end
 
-	def self.getDefaultRoute
-		return Net::IP.routes.gateways.find {|gateway| gateway.prefix == "default"}.via
+	private_class_method def self.reconfigureNetwork(settings)
+	
+		status = false
+
+		remotely(server: 'stack-controller') do
+			require 'open3'
+
+			# Modify the network script
+			ext_net = File.read("/etc/sysconfig/network-scripts/ifcfg-#{settings['interface']}")
+			ext_net.gsub!(/^IPADDR=.*$/, "IPADDR=#{settings['ipv4']}")
+			ext_net.gsub!(/^NETMASK=.*$/, "NETMASK=#{settings['netmask']}")
+			ext_net.gsub!(/^GATEWAY=.*$/, "GATEWAY=#{settings['gateway']}")
+			File.open("/etc/sysconfig/network-scripts/ifcfg-#{settings['interface']}", "w") {|file| file.puts ext_net }
+
+			out, status = Open3.capture2("ifdown #{settings['interface']} && ifup #{settings['interface']}")
+		end
+
+		return status
+
 	end
 end

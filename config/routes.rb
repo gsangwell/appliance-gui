@@ -11,11 +11,14 @@ Rails.application.routes.draw do
 
     get '/setup',  to: 'setup#start'
 
+    get '/setup/user',  to: 'setup#user'
+    post '/setup/user',  to: 'setup#user_settings'
+
     get '/setup/network',  to: 'setup#network'
     post '/setup/network',    to: 'setup#network_settings'
 
     get '/setup/confirm',  to: 'setup#confirm'
-    post '/setup/confirm',  to: 'setup#reconfigure_appliance'
+    post '/setup/confirm',  to: 'setup#reconfigure'
 
     get '/setup/complete',  to: 'setup#complete'
 

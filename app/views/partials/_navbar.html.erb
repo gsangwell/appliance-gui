@@ -10,7 +10,7 @@
 
     <div id="navbarMenu" class="navbar-nav navbar-collapse collapse">
       <% if bolt_on_enabled("setup") %>
-        <%= link_to "Setup Wizard", setup_path, class: "nav-item nav-link #{'active' if current_page?(setup_path) || current_page?(setup_network_path) || current_page?(setup_confirm_path) }", method: :get %>
+        <%= link_to "Setup Wizard", setup_path, class: "nav-item nav-link #{'active' if current_page?(setup_user_path) || current_page?(setup_network_path) || current_page?(setup_confirm_path) }", method: :get %>
       <% end %>
 
       <% link_to "System", root_path, class: "nav-item nav-link #{'active' if current_page?(root_path)}", method: :get %>

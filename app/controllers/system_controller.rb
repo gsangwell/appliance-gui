@@ -1,11 +1,11 @@
-require 'appliance/appliance'
+#require 'appliance/appliance'
 
 class SystemController < ApplicationController
 	before_action :require_login
 
 	def index
-		@appliance_info = Appliance.getApplianceInfo
-		@network_info = Appliance.getNetworkInfo
-		@support_info = Appliance.getSupportInfo(ENV.fetch("SUPPORT_VPN") { "support" })
+		@appliance_info = StackAppliance.getApplianceInfo
+		@network_info = StackAppliance.getNetworkInfo(ENV.fetch("PING_TEST") { "8.8.8.8" }, ENV.fetch("DNS_TEST") { "alces-software.com"} )
+		@support_info = StackAppliance.getSupportInfo(ENV.fetch("SUPPORT_VPN") { "support" }, ENV.fetch("SUPPORT_TEST") { "10.178.0.1" })
 	end
 end

@@ -10,7 +10,18 @@
               </div>
             </div>
           </div>
-          <hr>
+	  <hr>
+	  <div class="row mb-1 center">
+            <h5>Admin User:</h5>
+          </div>
+          <div class="row mb-1">
+            <div class="settings-div">
+              <b>Name:</b> <%= session['setup']['user']['name'] %><br>
+	      <b>Username:</b> <%= session['setup']['user']['username'] %><br>
+	      <b>Password:</b> ********<br>
+            </div>
+	  </div>
+	  <hr>
           <div class="row mb-1 center">
             <h5>External Network:</h5>
           </div>

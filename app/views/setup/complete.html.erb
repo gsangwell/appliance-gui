@@ -1,4 +1,7 @@
 <% content_for(:title) { 'Appliance Setup' } %>
+<% content_for(:meta) do %>
+  <meta http-equiv="refresh" content="120;url=http://<%= @appliance_ip %>/" />
+<% end %>
 
     <div class="row center mt-3 justify-content-center">
       <div class="col-6">
@@ -12,7 +15,7 @@
 	  </div>
 	  <hr>
           <div class="row mb-1 center">
-		  <h6>Your appliance will now reconfigure and then reboot. This may take a while. <br><br> Once the appliance has rebooted, you can then access it via the external IP address configured.</h5>
+		  <h6>Your appliance is now reconfiguring - this may take a while. <br><br> Once complete, you will be able to access the appliance at the external IP address (<%= @appliance_ip %>) configured.</h6>
           </div>
 	<% end %>
       </div>
