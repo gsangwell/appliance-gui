@@ -6,12 +6,16 @@ require 'remote_ruby'
 
 class Appliance
 	def self.getApplianceInfo
-
 		info = {}
 
-		info['horizon'] = "https://openstack.gazstack.compute.estate"
+                remotely(server: 'stack-controller') do
+                        config = File.readlines('/etc/kolla/globals.yml')
+                        fqdn = config.find {|line| line.match(/^kolla_external_fqdn:/) }.match(/^kolla_external_fqdn: "?(.*?)"?$/)[1]
 
-		return info
+                        info['horizon'] = "https://#{fqdn}"
+                end
+
+                return info
 	end
 
 	def self.getNetworkInfo
