@@ -54,6 +54,7 @@ gem "bootsnap", require: false
 gem 'rails_admin'
 gem 'sassc-rails'
 
+gem 'dotenv-rails'
 gem 'clearance'
 gem 'rpam2'
 gem 'net-ping'
