@@ -1,0 +1,61 @@
+<% content_for(:title) { 'Appliance Setup' } %>
+
+<div class="setup-body">
+<%= image_tag 'square-logo.png', size: '200x200', class: 'mt-4' %>
+  <h1><%= Rails.application.config.application_name %> Appliance</h1>
+  <br>
+  <div>
+    <div class="row center mt-3" style="width: 90%;">
+      <div class="col">
+      <%= form_for(:setup_user, url: setup_user_path, html: { id: 'setup_user', class: 'styled-form', style: 'min-width: 35%'}) do |f| %>
+        <div class="row center">
+          <div class="col">
+            <div class="row">
+              <h2>Step 1: Create User</h2>
+            </div>
+            <div class="row text-left">
+              <h6>Create a user to login to the appliance dashboard and cli.</h6>
+            </div>
+          </div>
+        </div>
+        <hr>
+        <div class="row mb-1">
+          <div class="col-sm-4 form-label mt-1">
+            <%= f.label :name, 'Name:' %>
+          </div>
+          <div class="col-sm-8">
+            <%= f.text_field :name, class: 'form-control', required: true %>
+          </div>
+        </div>
+        <div class="row mb-1">
+          <div class="col-sm-4 form-label mt-1">
+            <%= f.label :username, 'Username:' %>
+          </div>
+          <div class="col-sm-8">
+            <%= f.text_field :username, class: 'form-control', required: true %>
+          </div>
+        </div>
+        <hr>
+        <div class="row mb-1">
+          <div class="col-sm-4 form-label mt-1">
+            <%= f.label :password, 'Password:' %>
+          </div>
+          <div class="col-sm-8">
+            <%= f.password_field :password, class: 'form-control', required: true %>
+          </div>
+        </div>
+        <div class="row mb-1">
+          <div class="col-sm-4 form-label mt-1">
+            <%= f.label :password_confirmation, 'Confirm password:', required: true %>
+          </div>
+          <div class="col-sm-8">
+            <%= f.password_field :password_confirmation, class: 'form-control', required: true %>
+          </div>
+        </div>
+        <hr>
+        <%= f.submit 'Next', id: 'setup_user_next_button', class: 'btn btn-primary mt-2' %>
+      <% end %>
+      </div>
+    </div>
+  </div>
+</div>

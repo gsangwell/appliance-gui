@@ -1,0 +1,35 @@
+<% if signed_in? %>
+  <nav class="navbar navbar-expand-lg navbar-dark mb-1 sticky-top">
+    <a class="navbar-brand" href="<%= root_path %>" style="margin-left: 15px">
+      <%= image_tag 'moosebird.png', size: '40x25', class: 'mb-1' %>
+      Gazstack
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>    
+
+    <div id="navbarMenu" class="navbar-nav navbar-collapse collapse">
+      <% if bolt_on_enabled("setup") %>
+        <%= link_to "Setup Wizard", setup_path, class: "nav-item nav-link #{'active' if current_page?(setup_path) || current_page?(setup_network_path) || current_page?(setup_confirm_path) }", method: :get %>
+      <% end %>
+
+      <% link_to "System", root_path, class: "nav-item nav-link #{'active' if current_page?(root_path)}", method: :get %>
+
+      <% pages = [] %>
+      <% pages.map { |p| [p, polymorphic_path(p.downcase)] }.each do |page, path| %>
+	<% if bolt_on_enabled(page.downcase) %>
+          <%= link_to page,
+                      path,
+                      class: "nav-item nav-link #{'active' if current_page?(path)}",
+                      method: :get
+	      %>
+        <% end %>
+      <% end %>
+      <%= link_to "(#{current_user.username}) Sign Out",
+          logout_path,
+          method: :delete,
+          class: 'nav-item nav-link logout-btn'
+      %>
+    </div>
+  </nav>
+<% end %>

@@ -1,0 +1,3 @@
+class BoltOn < ApplicationRecord
+
+end

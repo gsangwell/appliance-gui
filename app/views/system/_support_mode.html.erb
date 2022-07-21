@@ -1,0 +1,24 @@
+<div class="card d-flex mb-2">
+  <h5 class="card-header">Support Mode</h5>
+  <div class="card-body">
+    <% if @support_info['enabled'] %>
+    <b>Enabled Since</b>: <%= @support_info['enabled_since'] %><br>
+    <b>Ping Support Hub</b>: <%= @support_info['ping_hub'] %><br><br>
+    <div class="btn-group d-flex">
+      <%= link_to 'Disable Alces Support',
+                support_disable_path,
+                class: 'btn btn-danger',
+                data: { turbo_method: :post, turbo_confirm: "Are you sure you wish to disable support mode?" }
+      %>
+    </div>
+    <% else %>
+    <div class="btn-group d-flex">
+      <%= link_to 'Enable Alces Support',
+                support_enable_path,
+                class: 'btn btn-primary',
+                method: :post
+      %>
+    </div>
+    <% end %>
+  </div>
+</div>

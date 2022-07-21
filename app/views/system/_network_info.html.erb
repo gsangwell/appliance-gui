@@ -1,0 +1,10 @@
+<div class="card d-flex mb-2">
+  <h5 class="card-header">Network Information</h5>
+  <div class="card-body">
+    <b>IP Address:</b> <%= @network_info['ip'] %><br>
+    <b>Default Gateway:</b> <%= @network_info['gateway'] %><br>
+    <b>DNS Server:</b> <%= @network_info['dns'] %><br>
+    <b>Ping Test:</b> <% if @network_info['ping_test'] %><span class="text-success">Pass</span><% else %><span class="text-danger">Fail</span><% end %><br>
+    <b>DNS Test:</b> <% if @network_info['dns_test'] %><span class="text-success">Pass</span><% else %><span class="text-danger">Fail</span><% end %><br>
+  </div>
+</div>

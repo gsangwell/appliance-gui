@@ -1,0 +1,17 @@
+<% content_for(:title) { 'Login' } %>
+
+<div class="login-body">
+  <%= image_tag 'square-logo.png', size: '200x200', class: 'mt-4' %>
+  <h1>Gazstack</h1>
+  <div>
+    <div>
+      <%= form_for(:session, url: login_path, html: { class: 'styled-form' }) do |f| %>
+        <%= f.label :username %>
+        <%= f.text_field :username, class: 'form-control' %>
+        <%= f.label :password %>
+        <%= f.password_field :password, class: 'form-control' %>
+        <%= f.submit 'Sign In', class: 'btn btn-primary mt-2' %>
+      <% end %>
+    </div>
+  </div>
+</div>

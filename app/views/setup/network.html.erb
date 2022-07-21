@@ -1,0 +1,56 @@
+<% content_for(:title) { 'Appliance Setup' } %>
+
+    <div class="row center mt-3 justify-content-center">
+      <div class="col-6">
+        <%= form_for(:setup_network, url: setup_network_path, html: { id: 'setup_network', class: 'styled-form', style: 'width: 100%'}) do |f| %>
+          <div class="row center">
+            <div class="col">
+              <div class="row">
+                <h2>Configure External Network</h2>
+              </div>
+            </div>
+          </div>
+          <hr>
+          <div class="row mb-1 center">
+            <h5>External Network:</h5>
+          </div>
+          <div class="row mb-1">
+            <div class="col-sm-4 form-label mt-1">
+              <%= f.label :ipv4, 'IP Address:' %>
+            </div>
+            <div class="col-sm-8">
+              <%= f.text_field :ipv4, id: 'setup_network_ipv4', class: 'form-control', required: true %>
+            </div>
+           </div>
+          <div class="row mb-1">
+            <div class="col-sm-4 form-label mt-1">
+              <%= f.label :netmask, 'Netmask:' %>
+            </div>
+            <div class="col-sm-8">
+              <%= f.text_field :netmask, class: 'form-control', required: true %>
+            </div>
+          </div>
+          <div class="row mb-1">
+            <div class="col-sm-4 form-label mt-1">
+              <%= f.label :gateway, 'Gateway:' %>
+            </div>
+            <div class="col-sm-8">
+              <%= f.text_field :gateway, class: 'form-control', required: true %>
+            </div>
+          </div>
+          <div class="row mb-1">
+            <div class="col-sm-4 form-label mt-1">
+              <%= f.label :dns, 'DNS Server:' %>
+            </div>
+            <div class="col-sm-8">
+              <%= f.text_field :dns, class: 'form-control', required: true %>
+            </div>
+	  </div>
+	  <hr>
+	  <div class="row float-start">
+                <h6>This is the network cable plugged into your site network switch.</h6>
+              </div>
+          <%= f.submit 'Next', class: 'btn btn-primary mt-2 float-end' %>
+        <% end %>
+      </div>
+    </div>

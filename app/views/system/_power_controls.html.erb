@@ -1,0 +1,15 @@
+<div class="card d-flex mb-2">
+  <h5 class="card-header">Power Management</h5>
+  <div class="card-body text-center">
+    <div class="btn-group d-flex">
+      <% ['shutdown', 'restart'].each do |action| %>
+        <%= link_to action.capitalize,
+                    public_send("power_#{action}_path"),
+                    class: 'btn btn-danger',
+                    style: 'width: 50%;',
+		    data: { turbo_method: :post, turbo_confirm: "Are you sure you wish to #{action} this appliance?" }
+        %>
+      <% end %>
+    </div>
+  </div>
+</div>

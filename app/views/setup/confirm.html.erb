@@ -1,0 +1,33 @@
+<% content_for(:title) { 'Appliance Setup' } %>
+
+    <div class="row center mt-3 justify-content-center">
+      <div class="col-6">
+        <%= form_for(:setup_confirm, url: setup_confirm_path, html: { id: 'setup_confirm', class: 'styled-form', style: 'width: 100%'}) do |f| %>
+          <div class="row center">
+            <div class="col">
+              <div class="row">
+                <h2>Confirm Settings</h2>
+              </div>
+            </div>
+          </div>
+          <hr>
+          <div class="row mb-1 center">
+            <h5>External Network:</h5>
+          </div>
+	  <div class="row mb-1">
+            <div class="settings-div">
+	      <b>IP Address:</b> <%= session['setup']['network']['ipv4'] %><br>
+	      <b>Netmask:</b> <%= session['setup']['network']['netmask'] %><br>
+	      <b>Gateway:</b> <%= session['setup']['network']['gateway'] %><br>
+	      <b>DNS:</b> <%= session['setup']['network']['dns'] %><br>
+            </div>
+          </div>
+	  <hr>
+	  <div class="row float-start">
+            <h6>Confirm these settings are correct before you reconfigure the appliance.</h6>
+	  </div>
+	  <%= f.submit 'Confirm', class: 'btn btn-primary mt-2 float-end' %>
+	  <%= link_to 'Back', setup_network_path, class: 'btn btn-primary mt-2 float-end me-1' %>
+        <% end %>
+      </div>
+    </div>
