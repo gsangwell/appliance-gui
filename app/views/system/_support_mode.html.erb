@@ -8,7 +8,7 @@
       <%= link_to 'Disable Alces Support',
                 support_disable_path,
                 class: 'btn btn-danger',
-                data: { turbo_method: :post, turbo_confirm: "Are you sure you wish to disable support mode?" }
+                data: { turbo_method: :get, turbo_confirm: "Are you sure you wish to disable support mode?" }
       %>
     </div>
     <% else %>
