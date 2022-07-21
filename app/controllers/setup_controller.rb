@@ -6,7 +6,7 @@ class SetupController < ApplicationController
 	before_action :setup_session
 
 	def start
-		redirect_to setup_network_path
+		redirect_to setup_user_path
 	end
 
 	def user
