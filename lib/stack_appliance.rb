@@ -9,12 +9,16 @@ class StackAppliance
 	def self.getApplianceInfo
 		info = {}
 
-                remotely(server: 'stack-controller') do
-                        config = File.readlines('/etc/kolla/globals.yml')
-                        fqdn = config.find {|line| line.match(/^kolla_external_fqdn:/) }.match(/^kolla_external_fqdn: "?(.*?)"?$/)[1]
+		begin
+	                remotely(server: 'stack-controller') do
+        	                config = File.readlines('/etc/kolla/globals.yml')
+                	        fqdn = config.find {|line| line.match(/^kolla_external_fqdn:/) }.match(/^kolla_external_fqdn: "?(.*?)"?$/)[1]
 
-                        info['horizon'] = "https://#{fqdn}"
-                end
+	                        info['horizon'] = "https://#{fqdn}"
+        	        end
+		rescue => e
+			info['horizon'] = "Error"
+		end
 
                 return info
 	end
@@ -22,37 +26,44 @@ class StackAppliance
 	def self.getNetworkInfo(ping_test, dns_test)
 		info = {}
 
-		remotely(server: 'directory') do
-                        require 'resolv'
+		begin
+			remotely(server: 'directory') do
+                        	require 'resolv'
 
-                        dns = Resolv::DNS::Config.default_config_hash[:nameserver].join(",")
+	                        dns = Resolv::DNS::Config.default_config_hash[:nameserver].join(",")
 
-			info['dns'] = dns.empty? ? "No DNS Server" : dns
-                end
-
-		remotely(server: 'stack-controller') do
-			require 'net/ip'
-			require 'net/ping'
-			require 'resolv'
-
-			ipv4 = `ip -4 addr show eth3 | grep 'inet' | awk '{print $2}' | head -1`.to_s
-			default_route = Net::IP.routes.gateways.find {|gateway| gateway.prefix == "default"}
-			ping_test = Net::Ping::External.new("#{ping_test}").ping?
-
-			begin
-				resolv = Resolv::DNS.new()
-				resolv.timeouts = 2
-				dns_test = resolv.getaddress("#{dns_test}")
-			rescue => e
-				puts e
-				dns_test = false
-			end
-
-			info['ip'] = ipv4.empty? ? "No IP Address." : ipv4
-			info['gateway'] = default_route.nil? ? "No default route." : default_route.via
-			info['ping_test'] = ping_test
-			info['dns_test'] = dns_test
+				info['dns'] = dns.empty? ? "No DNS Server" : dns
+                	end
+		rescue => e
+			info['dns'] = "Error"
 		end
+
+		begin
+			remotely(server: 'stack-controller') do
+				require 'net/ip'
+				require 'net/ping'
+				require 'resolv'
+
+				ipv4 = `ip -4 addr show eth3 | grep 'inet' | awk '{print $2}' | head -1`.to_s
+				default_route = Net::IP.routes.gateways.find {|gateway| gateway.prefix == "default"}
+
+				info['ip'] = ipv4.empty? ? "No IP Address." : ipv4
+				info['gateway'] = default_route.nil? ? "No default route." : default_route.via
+			end
+		rescue => e
+			info['ip'] = "Error"
+			info['gateway'] = "Error"
+		end
+
+		begin
+			resolv = Resolv::DNS.new()
+			resolv.timeouts = 2
+			info['dns_test'] = resolv.getaddress("#{dns_test}")
+		rescue => e
+			info['dns_test'] = false
+		end
+
+		info['ping_test'] = Net::Ping::External.new("#{ping_test}").ping?
 
 		return info		
 	end
@@ -92,31 +103,76 @@ class StackAppliance
                 return status.success?
         end
 
+	def self.user_exists?(username)
+		
+		exists = false
+
+		begin
+			remotely(server: 'directory') do
+				require 'open3'
+
+				out, status = Open3.capture2("id #{username}")
+
+				exists = true if status.exitstatus == 0
+			end
+		rescue => e
+			return true
+		end
+
+		return exists
+	end
+
+
 	def self.reconfigure(settings)
 
 		# Reconfigure network settings
 		reconfigureNetwork(settings['network'])
 
+		# Add admin user
+		addUser(settings['user'])
 	end
 
 	private_class_method def self.reconfigureNetwork(settings)
 	
-		status = false
+		status = nil
 
-		remotely(server: 'stack-controller') do
-			require 'open3'
+		begin
 
-			# Modify the network script
-			ext_net = File.read("/etc/sysconfig/network-scripts/ifcfg-#{settings['interface']}")
-			ext_net.gsub!(/^IPADDR=.*$/, "IPADDR=#{settings['ipv4']}")
-			ext_net.gsub!(/^NETMASK=.*$/, "NETMASK=#{settings['netmask']}")
-			ext_net.gsub!(/^GATEWAY=.*$/, "GATEWAY=#{settings['gateway']}")
-			File.open("/etc/sysconfig/network-scripts/ifcfg-#{settings['interface']}", "w") {|file| file.puts ext_net }
+			remotely(server: 'stack-controller') do
+				require 'open3'
 
-			out, status = Open3.capture2("ifdown #{settings['interface']} && ifup #{settings['interface']}")
+				# Modify the network script
+				ext_net = File.read("/etc/sysconfig/network-scripts/ifcfg-#{settings['interface']}")
+				ext_net.gsub!(/^IPADDR=.*$/, "IPADDR=#{settings['ipv4']}")
+				ext_net.gsub!(/^NETMASK=.*$/, "NETMASK=#{settings['netmask']}")
+				ext_net.gsub!(/^GATEWAY=.*$/, "GATEWAY=#{settings['gateway']}")
+				File.open("/etc/sysconfig/network-scripts/ifcfg-#{settings['interface']}", "w") {|file| file.puts ext_net }
+
+				out, status = Open3.capture2("ifdown #{settings['interface']} && ifup #{settings['interface']}")
+			end
+
+		rescue => e
+			return false
 		end
 
-		return status
+		return status.success?
+	end
 
+	private_class_method def self.addUser(user)
+	
+		status = nil
+
+		begin
+			remotely(server: 'directory') do
+
+				require 'open3'
+
+				out, status = Open3.capture2("useradd #{user['username']} && echo '#{user['username']}:#{user['encrypted_pass']}' | chpasswd -e ; make -C /var/yp")
+			end
+		rescue => e
+			return false
+		end
+
+		return status.success?
 	end
 end

@@ -14,9 +14,21 @@ class SetupController < ApplicationController
 
 	def user_settings
 		user_params = params['setup_user']
-		session['setup']['user'] = user_params
 
-		redirect_to setup_network_path
+		salt = rand(36**8).to_s(36)
+
+		# Make sure user doesn't already exist
+		if StackAppliance.user_exists?(user_params['username'])
+			flash[:danger] = "Invalid username - please try again."
+			redirect_to setup_user_path
+		else
+			session['setup']['user'] = {}
+			session['setup']['user']['name'] = user_params['name']
+			session['setup']['user']['username'] = user_params['username']
+			session['setup']['user']['encrypted_pass'] = user_params['password'].crypt("$6$" + salt)
+
+			redirect_to setup_network_path
+		end
 	end
 
 	def network
