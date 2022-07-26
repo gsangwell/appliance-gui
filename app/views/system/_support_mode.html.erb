@@ -3,9 +3,9 @@
   <div class="card-body">
     <% if @support_info['enabled'] %>
     <b>Enabled Since</b>: <%= @support_info['enabled_since'] %><br>
-    <b>Ping Support Hub</b>: <%= @support_info['ping_hub'] %><br><br>
+    <b>Support Test</b>: <% if @support_info['ping_hub'] %><span class="text-success">Pass</span><% else %><span class="text-danger">Fail</span><% end %><br><br>
     <div class="btn-group d-flex">
-      <%= link_to 'Disable Alces Support',
+      <%= link_to 'Disable Remote Support',
                 support_disable_path,
                 class: 'btn btn-danger',
                 data: { turbo_method: :get, turbo_confirm: "Are you sure you wish to disable support mode?" }
@@ -13,7 +13,7 @@
     </div>
     <% else %>
     <div class="btn-group d-flex">
-      <%= link_to 'Enable Alces Support',
+      <%= link_to 'Enable Remote Support',
                 support_enable_path,
                 class: 'btn btn-primary',
                 method: :post

@@ -30,6 +30,10 @@ Rails.application.routes.draw do
     get '/power/shutdown', to: 'power#shutdown'
     get '/power/restart', to: 'power#restart'
 
+    get '/vpn/start',  to: 'vpn#start'
+    get '/vpn/stop',  to: 'vpn#stop'
+    get '/vpn/download',  to: 'vpn#download_config'
+
     match '*path', to: 'system#index', via: :get
     root 'system#index'
   end

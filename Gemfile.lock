@@ -150,6 +150,7 @@ GEM
       activerecord
       kaminari-core (= 1.2.2)
     kaminari-core (1.2.2)
+    linux_stat (2.5.3)
     loofah (2.18.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
@@ -302,6 +303,7 @@ DEPENDENCIES
   dotenv-rails
   jbuilder
   jsbundling-rails
+  linux_stat
   net-ip
   net-ping
   pg (~> 1.1)

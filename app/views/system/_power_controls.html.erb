@@ -1,13 +1,25 @@
 <div class="card d-flex mb-2">
   <h5 class="card-header">Power Management</h5>
-  <div class="card-body text-center">
+  <div class="card-body">
+    <% if !@appliance_info['scheduled_power'].nil? %>
+      <b>Scheduled <%= @appliance_info['scheduled_power']['type'] %>:</b> <%= @appliance_info['scheduled_power']['timestamp'] %><br><br>
+      <div class="btn-group d-flex mb-2">
+      <%= link_to "Cancel scheduled #{@appliance_info['scheduled_power']['type']}",
+                    root_path,
+                    class: 'btn btn-primary',
+                    style: 'width: 50%;',
+                    data: { turbo_method: :get, turbo_confirm: "Are you sure you wish to cancel the #{@appliance_info['scheduled_power']['type']}?" }
+        %>
+      </div>
+    <% end %>	
+
     <div class="btn-group d-flex">
       <% ['shutdown', 'restart'].each do |action| %>
         <%= link_to action.capitalize,
                     public_send("power_#{action}_path"),
                     class: 'btn btn-danger',
                     style: 'width: 50%;',
-		    data: { turbo_method: :get, turbo_confirm: "Are you sure you wish to #{action} this appliance?" }
+                    data: { turbo_method: :get, turbo_confirm: "Are you sure you wish to #{action} this appliance?" }
         %>
       <% end %>
     </div>

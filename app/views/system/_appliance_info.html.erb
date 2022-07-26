@@ -1,6 +1,7 @@
 <div class="card d-flex mb-2">
   <h5 class="card-header">Appliance Information</h5>
   <div class="card-body">
+    <b>Uptime:</b> <%= @appliance_info['uptime'] %><br>  
     <b>Horizon URL:</b> <a href="<%= @appliance_info['horizon'] %>"><%= @appliance_info['horizon'] %></a><br>
   </div>
 </div>

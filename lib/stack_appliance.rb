@@ -4,6 +4,7 @@ require 'resolv'
 require 'time'
 require 'remote_ruby'
 require 'open3'
+require 'linux_stat'
 
 class StackAppliance
 	def self.getApplianceInfo
@@ -18,6 +19,15 @@ class StackAppliance
         	        end
 		rescue => e
 			info['horizon'] = "Error"
+		end
+                
+
+		info['uptime'] = ActiveSupport::Duration.build(LinuxStat::OS.uptime_i).inspect
+
+		if File.file?("/run/systemd/shutdown/scheduled")
+			info['scheduled_power'] = {}
+			info['scheduled_power']['type'] = `cat /run/systemd/shutdown/scheduled | grep MODE | awk -F= '{print $2}'`.strip
+			info['scheduled_power']['timestamp'] = Time.at(`cat /run/systemd/shutdown/scheduled | head -n 1 | cut -c6-15`.to_i).strftime("%Y-%m-%d %H:%M:%S")
 		end
 
                 return info
@@ -63,7 +73,7 @@ class StackAppliance
 			info['dns_test'] = false
 		end
 
-		info['ping_test'] = Net::Ping::External.new("#{ping_test}").ping?
+		info['ping_test'] = Net::Ping::External::new.ping?("#{ping_test}", 1, 1, 2)
 
 		return info		
 	end
@@ -73,14 +83,35 @@ class StackAppliance
 		status = `systemctl status openvpn-client@#{vpnclient} | grep "Active:"`
 
 		support = {}
-		support['enabled'] = status.match(/Active: active \(running\)/)
+		support['enabled'] = status.match?(/Active: active \(running\)/)
 
 		if support['enabled']
 			support['enabled_since'] = status.match(/Active: .*;(.*)/)[1]
-			support['ping_hub'] = Net::Ping::External.new("#{support_test}").ping?
+			support['ping_hub'] = Net::Ping::External.new.ping?("#{support_test}", 1, 1, 2)
 		end
 
 		return support
+	end
+
+	def self.getVpnInfo(vpnserver)
+
+		info = {}
+
+		#begin
+                        remotely(server: 'stack-controller') do
+
+				status = `systemctl status openvpn-server@#{vpnserver} | grep "Active:"`
+
+				info['status'] = status.match?(/Active: active \(running\)/)
+
+                        end
+                #rescue => e
+                #        info['status'] = false
+		#	puts e
+                #end
+
+		return info
+
 	end
 
 	def self.enableSupport(vpnclient)
@@ -102,6 +133,38 @@ class StackAppliance
 		out, status = Open3.capture2("shutdown -r 1 'Appliance restart initiated by user \' #{user}\'.'")
                 return status.success?
         end
+
+	def self.startVpn(vpnserver)
+                status = nil
+
+                begin
+                        remotely(server: 'stack-controller') do
+                                require 'open3'
+
+                                out, status = Open3.capture2("systemctl start openvpn-server@#{vpnserver}")
+                        end
+                rescue => e
+                        return false
+                end
+
+                return status.success?
+        end
+
+	def self.stopVpn(vpnserver)
+		status = nil
+
+		begin
+			remotely(server: 'stack-controller') do
+				require 'open3'
+
+				out, status = Open3.capture2("systemctl stop openvpn-server@#{vpnserver}")
+			end
+		rescue => e
+			return false
+		end
+
+		return status.success?
+	end
 
 	def self.user_exists?(username)
 		
@@ -127,6 +190,7 @@ class StackAppliance
 
 		# Reconfigure network settings
 		reconfigureNetwork(settings['network'])
+		reconfigureDNS(settings['network'])
 
 		# Add admin user
 		addUser(settings['user'])
@@ -158,6 +222,29 @@ class StackAppliance
 		return status.success?
 	end
 
+	private_class_method def self.reconfigureDNS(settings)
+
+		status = nil
+
+                begin
+
+                        remotely(server: 'directory') do
+				require 'open3'
+
+				pri_net = File.read("/etc/sysconfig/network-scripts/ifcfg-eth0")
+                                pri_net.gsub!(/^DNS1=.*$/, "DNS1=#{settings['dns']}")
+				File.open("/etc/sysconfig/network-scripts/ifcfg-eth0", "w") {|file| file.puts pri_net }
+
+				out, status = Open3.capture2("ifdown eth0 && ifup eth0")
+			end
+
+		rescue => e
+			return false
+		end
+
+		return status.success?
+	end
+
 	private_class_method def self.addUser(user)
 	
 		status = nil
@@ -167,7 +254,26 @@ class StackAppliance
 
 				require 'open3'
 
-				out, status = Open3.capture2("useradd #{user['username']} && echo '#{user['username']}:#{user['encrypted_pass']}' | chpasswd -e ; make -C /var/yp")
+				out, status = Open3.capture2("useradd -g admins -d /users/#{user['username']} -m #{user['username']} && echo '#{user['username']}:#{user['encrypted_pass']}' | chpasswd -e ; make -C /var/yp ;")
+				
+				if status.success?
+					`su - #{user['username']} -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -N '' ; cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys ; chmod 600 ~/.ssh/authorized_keys"`
+				end
+			end
+
+			if status.success?
+
+				status = nil
+
+				remotely(server: 'stack-controller') do
+
+					require 'open3'
+
+					out, status = Open3.capture2("source /opt/stack/kolla/bin/activate && source /etc/kolla/admin-openrc.sh && openstack user create #{user['username']} && openstack role add --user #{user['username']} --project admin admin && openstack role add --user gary --system all admin")
+
+
+				end
+
 			end
 		rescue => e
 			return false

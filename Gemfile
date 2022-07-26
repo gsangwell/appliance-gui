@@ -62,7 +62,8 @@ gem 'net-ip'
 gem 'remote_ruby'
 gem 'delayed_job'
 gem 'delayed_job_active_record'
-gem "daemons"
+gem 'daemons'
+gem 'linux_stat'
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

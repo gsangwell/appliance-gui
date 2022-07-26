@@ -1,0 +1,24 @@
+<div class="card d-flex mb-2">
+  <h5 class="card-header">VPN Information</h5>
+  <div class="card-body">
+    <b>VPN Status:</b> <% if @vpn_info['status'] %><span class="text-success">Running</span><% else %><span class="text-danger">Stopped</span><% end %><br><br>
+    <div class="btn-group d-flex">
+      <%= link_to 'Download Client Config',
+                vpn_download_path,
+                class: 'btn btn-primary w-100'
+	%>
+      <% if @vpn_info['status'] %>
+        <%= link_to 'Stop',
+	       vpn_stop_path,
+	       class: 'btn btn-danger w-100',
+	       data: { turbo_method: :get, turbo_confirm: "Are you sure you wish to disable the VPN?" }
+	%>
+      <% else %>
+        <%= link_to 'Start',
+                vpn_start_path,
+                class: 'btn btn-success w-100'
+        %>
+      <% end %>
+    </div>
+  </div>
+</div>
