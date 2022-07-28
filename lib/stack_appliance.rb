@@ -50,15 +50,12 @@ class StackAppliance
 
 		begin
 			remotely(server: 'stack-controller') do
-				require 'net/ip'
-				require 'net/ping'
-				require 'resolv'
 
 				ipv4 = `ip -4 addr show eth3 | grep 'inet' | awk '{print $2}' | head -1`.to_s
-				default_route = Net::IP.routes.gateways.find {|gateway| gateway.prefix == "default"}
+				default_route = `ip route | grep default | awk '{print $3}'`.to_s
 
 				info['ip'] = ipv4.empty? ? "No IP Address." : ipv4
-				info['gateway'] = default_route.nil? ? "No default route." : default_route.via
+				info['gateway'] = default_route.nil? ? "No default route." : default_route
 			end
 		rescue => e
 			info['ip'] = "Error"
@@ -165,6 +162,24 @@ class StackAppliance
 
 		return status.success?
 	end
+
+        def self.getVpnConfig(vpnserver)
+                output = ""
+
+                begin
+                        remotely(server: 'stack-controller') do
+
+                                ipv4 = `ip -4 addr show eth3 | grep 'inet' | awk '{print $2}' | head -1 | cut -d/ -f1`.to_s.strip
+                                template = `cat /etc/openvpn/client/#{vpnserver}.template`
+
+                                output = template.gsub("REMOTE_IP", ipv4)
+                        end
+                rescue => e
+                        return ""
+                end
+
+                return output
+        end
 
 	def self.user_exists?(username)
 		

@@ -23,12 +23,8 @@ class VpnController < ApplicationController
 
 	def download_config
 	
-		network_info = StackAppliance.getNetworkInfo(ENV.fetch("PING_TEST") { "8.8.8.8" }, ENV.fetch("DNS_TEST") { "alces-software.com"} )
-
-		config = `cat /opt/stack/vpnconfig.conf`
-		config.gsub!("10.99.1.2", network_info['ip'].split("/")[0])
-
-		send_data(config, :filename => "stack-vpn.conf")
+                config_file = StackAppliance.getVpnConfig("stack-vpn")
+		send_data(config_file, :filename => "stack-vpn.conf")
 
 	end
 end
